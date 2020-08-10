@@ -1,11 +1,19 @@
 import express, {Application, Request,Response, NextFunction} from 'express';
 import bodyParser from "body-parser";
-
+import mysql, { Connection } from "mysql";
 import {v4 as uuid} from 'uuid';
 
 const app: Application= express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+var connection: Connection =mysql.createConnection({
+    host     : 'localhost',
+    user     : 'me',
+    password : 'secret',
+    database : 'my_db'
+  });
+connection.connect();
+
 
 var favours: Array<object> = [];
 

@@ -5,14 +5,15 @@
   "main": "./build/main.js",
   "dependencies": {
     "@types/body-parser": "^1.19.0",
+    "@types/config": "0.0.36",
     "@types/express": "^4.17.7",
+    "@types/mysql": "^2.15.15",
     "@types/node": "^14.0.27",
     "@types/uuid": "^8.0.1",
     "express": "^4.17.1",
     "nodemon": "^2.0.4",
     "ts-node": "^8.10.2",
-    "typescript": "^3.9.7",
-    "uuid": "^8.3.0"
+    "typescript": "^3.9.7"
   },
   "devDependencies": {},
   "scripts": {
@@ -29,5 +30,6 @@
   "bugs": {
     "url": "https://github.com/bradleykenny/favour-town-api/issues"
   },
-  "homepage": "https://github.com/bradleykenny/favour-town-api#readme"
+  "homepage": "https://github.com/bradleykenny/favour-town-api#readme",
+  "keywords": []
 }
