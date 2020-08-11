@@ -2,19 +2,21 @@ import express, {Application, Request,Response, NextFunction} from 'express';
 import bodyParser from "body-parser";
 import mysql, { Connection } from "mysql";
 import {v4 as uuid} from 'uuid';
+import dotenv from 'dotenv';
 
 const app: Application= express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+dotenv.config();
 var connection: Connection =mysql.createConnection({
-    host     : 'localhost',
-    user     : 'me',
-    password : 'secret',
-    database : 'my_db'
+    host     : process.env.HOST,
+    user     : process.env.USER,
+    password : process.env.PASSWORD,
+    database : process.env.DB
   });
 connection.connect();
 
-
+/*
 var favours: Array<object> = [];
 
 app.get('/favours', (req: Request,res:Response, next:NextFunction)=>{
@@ -49,3 +51,4 @@ app.get('/', (req: Request,res:Response, next:NextFunction)=>{
 })
 
 app.listen(5000, () => console.log('Server running'))
+*/
