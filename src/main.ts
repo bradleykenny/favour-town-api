@@ -8,45 +8,38 @@ const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 dotenv.config();
-
-var connection: Connection = mysql.createConnection({
+var sqlConn: Connection = mysql.createConnection({
 	host: process.env.FT_HOST,
 	user: process.env.FT_USER,
 	password: process.env.FT_PASSWORD,
 	database: process.env.FT_DB,
 });
 
-connection.connect();
-
+sqlConn.connect();
 var favours: Array<object> = [];
-
+//Return number of favours requested by users, specified by count
 app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
-	const count: Number = Number(req.query["count"]); //Return number of favours requested by users
-	if (favours.length < count) {
-		for (let i = favours.length; i < count; i++) {
-			favours.push({
-				_id: "fvr_" + uuid(),
-				user_id: "usr_" + uuid(),
-				description: "Yo Imma do somethin for ya",
-				location: "Favortown",
-			}); //Generate a list of favours
-		}
-	}
-	res.send(favours);
+    const count:Number = (req.query["count"]!=undefined ? Number(req.query["count"]):20);//Default to 20 if no count is given
+    sqlConn.query("SELECT * FROM Favour LIMIT ?",[count],function(err, result){ 
+        if (err) throw err;
+        res.send(result); //Send back list of object returned by SQL query
+    })
 });
-app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
-	favours.push({
-		_id: "fvr_" + uuid(),
-		user_id: "usr_" + uuid(),
-		description: req.body["description"],
-		location: req.body["location"],
-	}); //Generate a list of favours
-	console.log(favours[favours.length - 1]);
-	res.send(req.query);
-});
-
-app.get("/", (req: Request, res: Response, next: NextFunction) => {
-	res.send("hi");
+//Post request to submit a favour
+//TODO: Insert user id sent by request instead of uuid generated one once login system works
+app.post("/favours", (req: Request, res: Response, next: NextFunction) => { 
+    const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins) VALUES (?,?,?,?,?,?)`;
+    
+    sqlConn.query(sqlQuery,
+        ["fvr_" + uuid(),
+        "usr_" + uuid(), //Replace with req.body["user_id"] when login is ready
+        req.body["title"],
+        req.body["location"],
+        req.body["description"],
+        req.body["coins"]], function (err, result) {
+        if (err) throw err;
+        res.send("OK"); // Send back OK if successfully inserted
+    });
 });
 
 app.listen(5000, () => console.log("Server running"));
