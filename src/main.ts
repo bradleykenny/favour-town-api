@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
-
+import sha1 from 'sha1';
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -45,15 +45,22 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/login", (req: Request, res: Response, next: NextFunction) => { 
     //TODO: After sprint 1 add the capability to login with email as well
-    const sqlQuery:string = "SELECT _id, username, password FROM User WHERE username=? AND password=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
+    const sqlQuery:string = "SELECT _id, username, password FROM User WHERE username=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
     sqlConn.query(sqlQuery,
-        [req.body["username"],req.body["password"]], function (err, result) {
+        [req.body["username"]], function (err, result) {
+
         if (err) throw err;
         if(result.length!=1){
-            res.send("FAILED");
+            res.send("ERROR: Login failed");
             console.log("failed login, sql return:",result);
             return;
         }
+        if(sha1(req.body["password"])!=result[0]["password"]){
+            console.log("Wrong password attempt:", result[0]["password"],req.body["password"]);
+            res.send("ERROR: Login failed");
+            return;
+        }
+
         console.log("login:",req.body);
         res.send(result[0]["_id"]); // Send back OK if successfully inserted
     });
