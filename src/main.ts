@@ -71,7 +71,27 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
         req.body["email"],
         0
         ], function (err, result) {
-        if (err) throw err;
+
+        if (err) {
+            switch(err.code){
+                case 'ER_DUP_ENTRY':
+                    const msg:any = err.sqlMessage;
+                    if(msg.endsWith('\'username\'')){
+                        res.send("ERROR: Username already taken");
+                    } else if (msg.endsWith('\'email_addr\'')){
+                        res.send("ERROR: Account with email already exists");
+                    } else{
+                        res.send("ERROR: Unknown Login Error");
+                    }
+                    break;
+                default:
+                    res.send(err.sqlMessage); // Just send sql error message
+                    break;
+            }
+            return;
+        }
+        console.log(result);
+        //TODO: Send back username/email already exists error if it exists. Check if SQL will send back this response once _id, username and email has been made unique
         res.send("OK"); // Send back OK if successfully registered
     });
 });
