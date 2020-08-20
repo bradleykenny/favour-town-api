@@ -67,7 +67,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 		}
 
 		bcrypt.compare(
-			req.body["password"],
+			req.body["password"], // troublesom comment issue
 			result[0]["password"].toString(), //SQL server returns binary string, need to convert to regular string to compare first
 			function (err, correct) {
 				if (correct) {
