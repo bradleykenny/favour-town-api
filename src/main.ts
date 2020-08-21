@@ -35,7 +35,7 @@ app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 //TODO: Determine valid user once login system works
 app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 	//TODO: Check user valid
-	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins) VALUES (?,?,?,?,?,?)`;
+	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins,date) VALUES (?,?,?,?,?,?,NOW())`;
 
 	sqlConn.query(
 		sqlQuery,
