@@ -4,6 +4,12 @@ import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+
+const favourTypeEnum = {
+	REQUEST: 0,
+	OFFER: 1,
+};
+
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -35,7 +41,17 @@ app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 //TODO: Determine valid user once login system works
 app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 	//TODO: Check user valid
-	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins,date) VALUES (?,?,?,?,?,?,NOW())`;
+	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins,favour_type,date) VALUES (?,?,?,?,?,?,?,NOW())`;
+	const type: number = (function (typeString) {
+		switch (typeString) {
+			case "request":
+				return favourTypeEnum.REQUEST;
+			case "offer":
+				return favourTypeEnum.OFFER;
+			default:
+				return favourTypeEnum.REQUEST;
+		}
+	})(req.body["type"]);
 
 	sqlConn.query(
 		sqlQuery,
@@ -46,6 +62,7 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 			req.body["location"],
 			req.body["description"],
 			req.body["coins"],
+			type,
 		],
 		function (err, result) {
 			if (err) throw err;
