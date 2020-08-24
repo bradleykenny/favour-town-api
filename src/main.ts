@@ -37,11 +37,12 @@ app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 		res.send(result); //Send back list of object returned by SQL query
 	});
 });
+
 //Post request to submit a favour
 //TODO: Determine valid user once login system works
 app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 	//TODO: Check user valid
-	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins,favour_type,date) VALUES (?,?,?,?,?,?,?,NOW())`;
+	const sqlQuery = `INSERT INTO Favour (_id, user_id, title, location, description, favour_coins, favour_type, date) VALUES (?,?,?,?,?,?,?,NOW())`;
 	const type: number = (function (typeString) {
 		switch (typeString) {
 			case "request":
@@ -61,7 +62,7 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 			req.body["title"],
 			req.body["location"],
 			req.body["description"],
-			req.body["coins"],
+			req.body["favour_coins"],
 			type,
 		],
 		function (err, result) {
@@ -84,7 +85,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 		}
 
 		bcrypt.compare(
-			req.body["password"], // troublesom comment issue
+			req.body["password"],
 			result[0]["password"].toString(), //SQL server returns binary string, need to convert to regular string to compare first
 			function (err, correct) {
 				if (correct) {
@@ -105,7 +106,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 	//Check user valid
-	const sqlQuery: string = `INSERT INTO User (_id, username, password,email_addr, favour_counter) VALUES (?,?,?,?,?)`;
+	const sqlQuery: string = `INSERT INTO User (_id, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?)`;
 	bcrypt.hash(req.body["password"], saltRounds, function (err, hash) {
 		//Need to throw error on bad hash?
 		sqlConn.query(
