@@ -141,4 +141,17 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 	});
 });
 
+//Return all the listings given username
+app.post("/listings", (req: Request, res: Response, next: NextFunction) => {	
+	const _id: string =
+		req.query["_id"] === undefined ? String(req.query["_id"]) : ""; 
+		sqlConn.query("SELECT (User.username, Favour.title) FROM (User, Favour) WHERE (User.? = Favour.user_id)", [_id], function (
+		err,
+		result
+	) {
+		if (err) throw err;
+		res.send(result); //Send back list of object returned by SQL query
+	});
+});
+
 app.listen(5000, () => console.log("Server running"));
