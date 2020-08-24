@@ -33,7 +33,7 @@ app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 		err,
 		result
 	) {
-		if (err) throw err;
+		if (err) console.log(err), res.send("error");
 		res.send(result); //Send back list of object returned by SQL query
 	});
 });
@@ -66,7 +66,7 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 			type,
 		],
 		function (err, result) {
-			if (err) throw err;
+			if (err) console.log(err), res.send("error");
 			res.send("OK"); // Send back OK if successfully inserted
 		}
 	);
@@ -77,7 +77,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 	const sqlQuery: string =
 		"SELECT _id, username, password FROM User WHERE username=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
 	sqlConn.query(sqlQuery, [req.body["username"]], function (err, result) {
-		if (err) throw err;
+		if (err) console.log(err), res.send("error");
 		if (result.length != 1) {
 			res.send("ERROR: Login failed");
 			console.log("failed login, sql return:", result);
@@ -88,6 +88,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 			req.body["password"],
 			result[0]["password"].toString(), //SQL server returns binary string, need to convert to regular string to compare first
 			function (err, correct) {
+				if (err) console.log(err), res.send("error");
 				if (correct) {
 					console.log("login:", req.body);
 					res.send(result[0]["_id"]); // Send back OK if successfully inserted
@@ -114,6 +115,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 			["usr_" + uuid(), req.body["username"], hash, req.body["email"], 0],
 			function (err, result) {
 				if (err) {
+					console.log(err);
 					switch (err.code) {
 						case "ER_DUP_ENTRY":
 							const msg: any = err.sqlMessage;
@@ -128,13 +130,13 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 							}
 							break;
 						default:
-							res.send(err.sqlMessage); // Just send sql error message
+							res.send("error"); // Just send sql error message
 							break;
 					}
 					return;
 				}
 				console.log(result);
-				//TODO: Send back username/email already exists error if it exists. Check if SQL will send back this response once _id, username and email has been made unique
+				//Send back username/email already exists error if it exists. Check if SQL will send back this response once _id, username and email has been made unique
 				res.send("OK"); // Send back OK if successfully registered
 			}
 		);
