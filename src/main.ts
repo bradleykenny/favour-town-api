@@ -4,9 +4,29 @@ import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+<<<<<<< Updated upstream
+=======
+const session = require("express-session");
+
+const favourTypeEnum = {
+	REQUEST: 0,
+	OFFER: 1,
+};
+
+>>>>>>> Stashed changes
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(
+	session({
+		secret: uuid(),
+		saveUninitialized: false,
+		cookie: {
+			//secure:true,
+			expires: 60000,
+		},
+	})
+);
 
 const saltRounds = 10;
 
@@ -56,6 +76,7 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 	//TODO: After sprint 1 add the capability to login with email as well
+
 	const sqlQuery: string =
 		"SELECT _id, username, password FROM User WHERE username=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
 	sqlConn.query(sqlQuery, [req.body["username"]], function (err, result) {
