@@ -147,7 +147,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 app.post("/listings", (req: Request, res: Response, next: NextFunction) => {
 	const _id = req.query._id;
 	sqlConn.query(
-		"SELECT (User.username, Favour.title) FROM (User, Favour) WHERE (? = Favour.user_id)",
+		"SELECT * FROM User WHERE _id=?",//(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
 		[_id],
 		function (err, result) {
 			if (err) throw err;
