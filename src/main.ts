@@ -4,6 +4,7 @@ import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { stringify } from "querystring";
 
 const favourTypeEnum = {
 	REQUEST: 0,
@@ -144,10 +145,10 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 });
 
 //Return all the listings given username
-app.post("/listings", (req: Request, res: Response, next: NextFunction) => {
+app.post("/listings", (req: Request, res: Response) => {
 	const _id = req.query._id;
 	sqlConn.query(
-		"SELECT * FROM User WHERE _id=?",//(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
+		"SELECT * FROM User WHERE username=?",//(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
 		[_id],
 		function (err, result) {
 			if (err) throw err;
