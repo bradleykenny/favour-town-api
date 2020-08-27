@@ -14,6 +14,20 @@ const favourTypeEnum = {
 const app: Application = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+var cors = require("cors");
+
+app.use(cors());
+var whitelist = ["http://localhost:3000"];
+
+var corsOptions = {
+	origin: function (origin: string, callback: any) {
+		if (whitelist.indexOf(origin) !== -1) {
+			callback(null, true);
+		} else {
+			callback(new Error("Not allowed by CORS"));
+		}
+	},
+};
 
 const saltRounds = 10;
 
@@ -148,7 +162,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 app.post("/listings", (req: Request, res: Response) => {
 	const _id = req.query._id;
 	sqlConn.query(
-		"SELECT * FROM User WHERE username=?",//(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
+		"SELECT * FROM User WHERE username=?", //(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
 		[_id],
 		function (err, result) {
 			if (err) throw err;
