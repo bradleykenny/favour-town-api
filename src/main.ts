@@ -4,29 +4,28 @@ import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-<<<<<<< Updated upstream
-=======
-const session = require("express-session");
+import session from "express-session";
 
 const favourTypeEnum = {
 	REQUEST: 0,
 	OFFER: 1,
 };
 
->>>>>>> Stashed changes
 const app: Application = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+
 app.use(
 	session({
 		secret: uuid(),
 		saveUninitialized: false,
+		resave: false,
 		cookie: {
 			//secure:true,
-			expires: 60000,
+			maxAge: 60000,
 		},
 	})
 );
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
 const saltRounds = 10;
 
@@ -54,21 +53,41 @@ app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 //Post request to submit a favour
 //TODO: Determine valid user once login system works
 app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
-	//TODO: Check user valid
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	//check if user is valid
+	sqlConn.query(
+		"SELECT _id FROM User WHERE _id=?",
+		[req.session!.user_id],
+		function (err, result) {
+			if (err) console.log(err);
+			console.log(result);
+			if (result.length != 1) {
+				//Check there is 1 and only 1 entry for user_id
+				res.send("ERROR: Login failed");
+				console.log("failed login, sql return:", result);
+				return;
+			}
+		}
+	);
+
 	const sqlQuery = `INSERT INTO Favour (_id, user_id, title,location,description, favour_coins) VALUES (?,?,?,?,?,?)`;
 
 	sqlConn.query(
 		sqlQuery,
 		[
 			"fvr_" + uuid(),
-			req.body["user_id"], //Replace with session id when sessions is ready
+			req.session!.user_id, //Replace with session id when sessions is ready
 			req.body["title"],
 			req.body["location"],
 			req.body["description"],
 			req.body["coins"],
 		],
 		function (err, result) {
-			if (err) throw err;
+			if (err) console.log(err);
 			res.send("OK"); // Send back OK if successfully inserted
 		}
 	);
@@ -92,8 +111,9 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 			result[0]["password"].toString(), //SQL server returns binary string, need to convert to regular string to compare first
 			function (err, correct) {
 				if (correct) {
-					console.log("login:", req.body);
-					res.send(result[0]["_id"]); // Send back OK if successfully inserted
+					req.session!.user_id = result[0]["_id"]; // Send back OK if successfully inserted
+					console.log(req.session);
+					res.send("OK");
 				} else {
 					console.log(
 						"Wrong password attempt:",
