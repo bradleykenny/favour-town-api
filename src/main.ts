@@ -165,7 +165,7 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 	//Check user valid
-	const sqlQuery: string = `INSERT INTO User (_id, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?)`;
+	const sqlQuery: string = `INSERT INTO User (_id, f_name, l_name, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?,?,?)`;
 	bcrypt.hash(req.body["password"], saltRounds, function (err, hash) {
 		//Need to throw error on bad hash?
 		sqlConn.query(
@@ -205,7 +205,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 app.get("/listings", (req: Request, res: Response) => {
 	const username = req.body.username;
 	sqlConn.query(
-		"SELECT u.username, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
+		"SELECT u.username, f.title, f._id, f.user_id FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
 		function (err, result) {
 			if (err) throw err;
