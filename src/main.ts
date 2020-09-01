@@ -66,13 +66,14 @@ var sqlConn: Connection = mysql.createConnection({
 app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 	const count: Number =
 		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
-	sqlConn.query("SELECT * FROM Favour LIMIT ?", [count], function (
-		err,
-		result
-	) {
-		if (err) console.log(err), res.send("error");
-		res.send(result); //Send back list of object returned by SQL query
-	});
+	sqlConn.query(
+		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id LIMIT ?",
+		[count],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			res.send(result); //Send back list of object returned by SQL query
+		}
+	);
 });
 
 //Post request to submit a favour
