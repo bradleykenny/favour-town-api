@@ -4,7 +4,9 @@ import mysql, { Connection } from "mysql";
 import { v4 as uuid } from "uuid";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import session from "express-session";
 import { stringify } from "querystring";
+var cookieParser = require("cookie-parser");
 
 const favourTypeEnum = {
 	REQUEST: 0,
@@ -12,11 +14,31 @@ const favourTypeEnum = {
 };
 
 const app: Application = express();
+
+app.use(
+	session({
+		secret: uuid(),
+		saveUninitialized: true,
+		resave: false,
+		cookie: {
+			secure: false,
+			maxAge: 60000,
+		},
+	})
+);
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 var cors = require("cors");
 
-app.use(cors());
+app.use(
+	cors({
+		origin: "http://localhost:3000",
+		credentials: true, // Allow session cookies
+	})
+);
+
+app.use(cookieParser());
 var whitelist = ["http://localhost:3000"];
 
 var corsOptions = {
@@ -44,19 +66,39 @@ var sqlConn: Connection = mysql.createConnection({
 app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
 	const count: Number =
 		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
-	sqlConn.query("SELECT * FROM Favour LIMIT ?", [count], function (
-		err,
-		result
-	) {
-		if (err) console.log(err), res.send("error");
-		res.send(result); //Send back list of object returned by SQL query
-	});
+	sqlConn.query(
+		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id LIMIT ?",
+		[count],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			res.send(result); //Send back list of object returned by SQL query
+		}
+	);
 });
 
 //Post request to submit a favour
 //TODO: Determine valid user once login system works
 app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
-	//TODO: Check user valid
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	//check if user is valid
+	sqlConn.query(
+		"SELECT _id FROM User WHERE _id=?",
+		[req.session!.user_id],
+		function (err, result) {
+			if (err) console.log(err);
+			console.log(result);
+			if (result.length != 1) {
+				//Check there is 1 and only 1 entry for user_id
+				res.send("ERROR: Login failed");
+				console.log("failed login, sql return:", result);
+				return;
+			}
+		}
+	);
 	const sqlQuery = `INSERT INTO Favour (_id, user_id, title, location, description, favour_coins, favour_type, date) VALUES (?,?,?,?,?,?,?,NOW())`;
 	const type: number = (function (typeString) {
 		switch (typeString) {
@@ -73,7 +115,7 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 		sqlQuery,
 		[
 			"fvr_" + uuid(),
-			req.body["user_id"], //Replace with session id when sessions is ready
+			req.session!.user_id, //Replace with session id when sessions is ready
 			req.body["title"],
 			req.body["location"],
 			req.body["description"],
@@ -105,8 +147,9 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 			function (err, correct) {
 				if (err) console.log(err), res.send("error");
 				if (correct) {
-					console.log("login:", req.body);
-					res.send(result[0]["_id"]); // Send back OK if successfully inserted
+					req.session!.user_id = result[0]["_id"]; // Send back OK if successfully inserted
+					console.log(req.session);
+					res.send("OK");
 				} else {
 					console.log(
 						"Wrong password attempt:",
