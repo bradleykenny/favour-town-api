@@ -170,7 +170,15 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 		//Need to throw error on bad hash?
 		sqlConn.query(
 			sqlQuery,
-			["usr_" + uuid(), req.body["username"], hash, req.body["email"], 0],
+			[
+				"usr_" + uuid(),
+				req.body["f_name"],
+				req.body["l_name"],
+				req.body["username"],
+				hash,
+				req.body["email"],
+				0,
+			],
 			function (err, result) {
 				if (err) {
 					console.log(err);
