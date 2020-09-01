@@ -212,8 +212,8 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 
 //Return all the listings given username
 //username, favour title, favour id, user id
-app.get("/listings", (req: Request, res: Response) => {
-	const username = req.body.username;
+app.get("/listings/:username", (req: Request, res: Response) => {
+	const username = req.params.username;
 	sqlConn.query(
 		"SELECT u.username, f.title, f._id, f.user_id FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
@@ -226,8 +226,8 @@ app.get("/listings", (req: Request, res: Response) => {
 
 //Return all profile information
 //username, user._id, email_addr, favour_counter, listings,
-app.get("/profile", (req: Request, res: Response) => {
-	const username = req.body.username;
+app.get("/profile/:username", (req: Request, res: Response) => {
+	const username = req.params.username;
 	sqlConn.query(
 		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
