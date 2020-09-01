@@ -32,7 +32,8 @@ var cors = require("cors");
 
 app.use(
 	cors({
-		credentials: true,
+		origin: "http://localhost:3000",
+		credentials: true, // Allow session cookies
 	})
 );
 
@@ -128,8 +129,6 @@ app.post("/favours", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 	//TODO: After sprint 1 add the capability to login with email as well
-	console.log(req.session);
-	console.log(req.sessionID);
 	const sqlQuery: string =
 		"SELECT _id, username, password FROM User WHERE username=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
 	sqlConn.query(sqlQuery, [req.body["username"]], function (err, result) {
