@@ -202,14 +202,27 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 });
 
 //Return all the listings given username
-app.post("/listings", (req: Request, res: Response) => {
+app.get("/listings", (req: Request, res: Response) => {
 	const username = req.body.username;
 	sqlConn.query(
-		//"SELECT * FROM User WHERE username=?",
-		"SELECT (User.username, Favour.title) FROM (User, Favour) WHERE (User.username=?)",
+		"SELECT u.username, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
 		function (err, result) {
 			if (err) throw err;
+			res.send(result); //Send back list of object returned by SQL query
+		}
+	);
+});
+
+//Return number of favours requested by users, specified by count
+app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
+	const count: Number =
+		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
+	sqlConn.query(
+		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id LIMIT ?",
+		[count],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
 			res.send(result); //Send back list of object returned by SQL query
 		}
 	);
