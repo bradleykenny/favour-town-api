@@ -160,10 +160,11 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 
 //Return all the listings given username
 app.post("/listings", (req: Request, res: Response) => {
-	const _id = req.query._id;
+	const username = req.body.username;
 	sqlConn.query(
-		"SELECT * FROM User WHERE username=?", //(User.username, Favour.title) FROM (User, Favour) WHERE (User._id=?)",
-		[_id],
+		//"SELECT * FROM User WHERE username=?",
+		"SELECT (User.username, Favour.title) FROM (User, Favour) WHERE (User.username=?)",
+		[username],
 		function (err, result) {
 			if (err) throw err;
 			res.send(result); //Send back list of object returned by SQL query
