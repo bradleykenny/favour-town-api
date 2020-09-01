@@ -188,6 +188,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 							if (msg.endsWith("'username'")) {
 								res.send("ERROR: Username already taken");
 							} else if (msg.endsWith("'email_addr'")) {
+								//'email_addr_UNIQUE'
 								res.send(
 									"ERROR: Account with email already exists"
 								);
@@ -210,6 +211,7 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 });
 
 //Return all the listings given username
+//username, favour title, favour id, user id
 app.get("/listings", (req: Request, res: Response) => {
 	const username = req.body.username;
 	sqlConn.query(
@@ -222,15 +224,15 @@ app.get("/listings", (req: Request, res: Response) => {
 	);
 });
 
-//Return number of favours requested by users, specified by count
-app.get("/favours", (req: Request, res: Response, next: NextFunction) => {
-	const count: Number =
-		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
+//Return all profile information
+//username, user._id, email_addr, favour_counter, listings,
+app.get("/listings", (req: Request, res: Response) => {
+	const username = req.body.username;
 	sqlConn.query(
-		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id LIMIT ?",
-		[count],
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
+		[username],
 		function (err, result) {
-			if (err) console.log(err), res.send("error");
+			if (err) throw err;
 			res.send(result); //Send back list of object returned by SQL query
 		}
 	);
