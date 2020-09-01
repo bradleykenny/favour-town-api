@@ -187,8 +187,8 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 							const msg: any = err.sqlMessage;
 							if (msg.endsWith("'username'")) {
 								res.send("ERROR: Username already taken");
-							} else if (msg.endsWith("'email_addr'")) {
-								//'email_addr_UNIQUE'
+							} else if (msg.endsWith("'email_addr_UNIQUE'")) {
+								//'email_addr_UNIQUE'	'email_addr'
 								res.send(
 									"ERROR: Account with email already exists"
 								);
@@ -226,7 +226,7 @@ app.get("/listings", (req: Request, res: Response) => {
 
 //Return all profile information
 //username, user._id, email_addr, favour_counter, listings,
-app.get("/listings", (req: Request, res: Response) => {
+app.get("/profile", (req: Request, res: Response) => {
 	const username = req.body.username;
 	sqlConn.query(
 		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
