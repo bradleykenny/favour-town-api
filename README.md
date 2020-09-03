@@ -51,13 +51,35 @@ user_id, to be used for user actions (e.g. posting favours)
 
 #### Fields:
 
+-   f_name  : first name
+-   l_name  : last name
 -   username : self-explainatory
 -   password : unencrypted password. Encryption yet to be confirmed on sql or api layer.
--   email : self-explainatory
+-   email   : self-explainatory
 
 #### Return
 
 "OK" to confirm user has been registered
+
+### GET /listings
+
+#### Fields:
+
+-   username : Parameter to specify which listings by a given username
+
+#### Return
+
+username, favour title, user id, favour id
+
+### GET /profile
+
+#### Fields:
+
+-   username : Parameter to specify which user's information to retreive
+
+#### Return
+
+username, user id, email addr, favour counters, favour listings
 
 ## Issues
 

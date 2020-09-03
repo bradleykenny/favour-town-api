@@ -165,12 +165,20 @@ app.post("/login", (req: Request, res: Response, next: NextFunction) => {
 
 app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 	//Check user valid
-	const sqlQuery: string = `INSERT INTO User (_id, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?)`;
+	const sqlQuery: string = `INSERT INTO User (_id, f_name, l_name, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?,?,?)`;
 	bcrypt.hash(req.body["password"], saltRounds, function (err, hash) {
 		//Need to throw error on bad hash?
 		sqlConn.query(
 			sqlQuery,
-			["usr_" + uuid(), req.body["username"], hash, req.body["email"], 0],
+			[
+				"usr_" + uuid(),
+				req.body["f_name"],
+				req.body["l_name"],
+				req.body["username"],
+				hash,
+				req.body["email"],
+				0,
+			],
 			function (err, result) {
 				if (err) {
 					console.log(err);
@@ -179,7 +187,8 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 							const msg: any = err.sqlMessage;
 							if (msg.endsWith("'username'")) {
 								res.send("ERROR: Username already taken");
-							} else if (msg.endsWith("'email_addr'")) {
+							} else if (msg.endsWith("'email_addr_UNIQUE'")) {
+								//'email_addr_UNIQUE'	'email_addr'
 								res.send(
 									"ERROR: Account with email already exists"
 								);
@@ -202,11 +211,25 @@ app.post("/register", (req: Request, res: Response, next: NextFunction) => {
 });
 
 //Return all the listings given username
-app.post("/listings", (req: Request, res: Response) => {
-	const username = req.body.username;
+//username, favour title, favour id, user id
+app.get("/listings/:username", (req: Request, res: Response) => {
+	const username = req.params.username;
 	sqlConn.query(
-		//"SELECT * FROM User WHERE username=?",
-		"SELECT (User.username, Favour.title) FROM (User, Favour) WHERE (User.username=?)",
+		"SELECT u.username, f.title, f._id, f.user_id FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
+		[username],
+		function (err, result) {
+			if (err) throw err;
+			res.send(result); //Send back list of object returned by SQL query
+		}
+	);
+});
+
+//Return all profile information
+//username, user._id, email_addr, favour_counter, listings,
+app.get("/profile/:username", (req: Request, res: Response) => {
+	const username = req.params.username;
+	sqlConn.query(
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
 		function (err, result) {
 			if (err) throw err;
