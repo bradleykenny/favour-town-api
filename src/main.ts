@@ -215,4 +215,12 @@ app.post("/listings", (req: Request, res: Response) => {
 	);
 });
 
+app.post("/hassession", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("NO");
+	} else {
+		res.send("YES");
+	}
+});
+
 app.listen(5000, () => console.log("Server running"));
