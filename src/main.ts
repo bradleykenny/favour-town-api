@@ -229,7 +229,7 @@ app.get("/listings/:username", (req: Request, res: Response) => {
 app.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	sqlConn.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
 		function (err, result) {
 			if (err) throw err;
