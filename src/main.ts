@@ -44,8 +44,6 @@ var corsOptions = {
 	},
 };
 
-const saltRounds = 10;
-
 app.use(require("./router"));
 
 const server = http.createServer(app);
