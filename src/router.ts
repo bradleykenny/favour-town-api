@@ -1,5 +1,4 @@
 var router = require("express").Router();
-
 import { Connection } from "mysql";
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuid } from "uuid";
@@ -83,7 +82,7 @@ router.post("/favours", (req: Request, res: Response) => {
 router.post("/login", (req: Request, res: Response) => {
 	//TODO: After sprint 1 add the capability to login with email as well
 	const sqlQuery: string =
-		"SELECT _id, username, password FROM User WHERE username=?"; //NOTE: can we compare unencrypted password to sql encrypted password?
+		"SELECT _id, username, password FROM User WHERE username=?";
 	db.query(sqlQuery, [req.body["username"]], function (err, result) {
 		if (err) console.log(err), res.send("error");
 		if (result.length != 1) {
@@ -195,6 +194,57 @@ router.post("/hassession", (req: Request, res: Response) => {
 	} else {
 		res.send("YES");
 	}
+});
+
+router.post("/account/password", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		return;
+	}
+
+	const sqlQuery: string = "SELECT _id, password FROM User WHERE _id=?";
+	db.query(sqlQuery, [req.session!.user_id], function (err, result) {
+		if (err) console.log(err), res.send("error");
+		if (result.length != 1) {
+			res.send("ERROR: Login failed");
+			console.log("failed login, sql return:", result);
+			return;
+		}
+
+		bcrypt.compare(
+			req.body["old_password"],
+			result[0]["password"].toString(), //SQL server returns binary string, need to convert to regular string to compare first
+			function (err, correct) {
+				if (err) console.log(err), res.send("error");
+				if (correct) {
+					const sqlQuery: string =
+						"UPDATE User SET password=? WHERE _id=?";
+					bcrypt.hash(req.body["new_password"], saltRounds, function (
+						err,
+						hash
+					) {
+						//Need to throw error on bad hash?
+						db.query(
+							sqlQuery,
+							[hash, req.session!.user_id],
+							function (err, result) {
+								if (err) console.log(err);
+								console.log(result);
+								res.send("OK"); // Send back OK if successfully registered
+							}
+						);
+					});
+				} else {
+					console.log(
+						"Wrong password reset attempt:",
+						result[0]["password"],
+						req.body["old_password"]
+					);
+					res.send("ERROR: Login failed");
+				}
+			}
+		);
+	});
 });
 
 module.exports = router;

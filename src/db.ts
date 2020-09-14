@@ -11,4 +11,5 @@ var sqlConn: Connection = mysql.createConnection({
 sqlConn.connect(function (err) {
 	if (err) throw err;
 });
+
 module.exports.db = sqlConn;
