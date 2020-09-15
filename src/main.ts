@@ -2,23 +2,22 @@ import express, { Application } from "express";
 import bodyParser from "body-parser";
 import { v4 as uuid } from "uuid";
 import session from "express-session";
+import sharedsession from "express-socket.io-session";
 import http from "http";
 import socketIO from "socket.io";
 var cookieParser = require("cookie-parser");
 
 const app: Application = express();
-
-app.use(
-	session({
-		secret: uuid(),
-		saveUninitialized: true,
-		resave: false,
-		cookie: {
-			secure: false,
-			maxAge: 60000,
-		},
-	})
-);
+const user_session = session({
+	secret: uuid(),
+	saveUninitialized: true,
+	resave: false,
+	cookie: {
+		secure: false,
+		maxAge: 60000,
+	},
+});
+app.use(user_session);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -48,8 +47,13 @@ app.use(require("./router"));
 
 const server = http.createServer(app);
 const io = socketIO(server);
-
-io.on("connection", require("./messenger"));
+io.use(
+	sharedsession(user_session, {
+		autoSave: true,
+	})
+);
+var messengerIO = io.of("messages");
+messengerIO.on("connection", require("./messenger"));
 
 //io ons and stuffs
 
