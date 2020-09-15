@@ -17,13 +17,25 @@ module.exports = function (client: socketIO.Socket) {
 					message: data["message"],
 				});
 			}
+			db.query(
+				"INSERT INTO Messages (sender_id,reciever_id, content,date) VALUES (?,?,?,NOW())", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+				[
+					client.handshake.session!.user_id,
+					data["reciever"],
+					data["message"],
+				],
+				function (err, result) {
+					if (err) console.log(err);
+					client.emit("got msg for " + data["reciever"]);
+				}
+			);
 			//Store message in db
 		});
 
 		client.on("recieve", (data) => {
 			//Client sends the number of messages loaded, and the user id they want to recieve messages from
 			db.query(
-				"SELECT msg FROM messages WHERE user_id=? ORDER BY date LIMIT ?,10", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+				"SELECT content FROM Messages WHERE user_id=? ORDER BY date LIMIT ?,10", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
 				[data["sender"], data["loaded"]],
 				function (err, result) {
 					if (err) throw err;
