@@ -17,7 +17,7 @@ router.get("/favours", (req: Request, res: Response) => {
 	const count: Number =
 		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
 	db.query(
-		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id LIMIT ?",
+		"SELECT f.*, u.username FROM Favour f JOIN User u ON f.user_id = u._id LIMIT ?",
 		[count],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
@@ -165,7 +165,7 @@ router.post("/register", (req: Request, res: Response, next: NextFunction) => {
 router.get("/listings/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, f.title, f._id, f.user_id FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
+		"SELECT f.*, u.username FROM User u INNER JOIN Favour f ON u._id = f.user_id WHERE u.username = ?",
 		[username],
 		function (err, result) {
 			if (err) throw err;
