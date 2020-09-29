@@ -13,7 +13,7 @@ module.exports = function (client: socketIO.Socket) {
 			//Should send the reciever and the message itself
 			if (connectedClients.hasOwnProperty(data["reciever"])) {
 				connectedClients[data["reciever"]].emit("incoming", {
-					sender: !client.handshake.session!.user_id,
+					sender: client.handshake.session!.user_id,
 					message: data["message"],
 				});
 			}
