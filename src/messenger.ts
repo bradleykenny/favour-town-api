@@ -6,7 +6,7 @@ var db: Connection = require("./db").db;
 
 //TODO: Work out: messages via sockets or messages via
 module.exports = function (client: socketIO.Socket) {
-	if (!client.handshake.session!.user_id) {
+	if (client.handshake.session!.user_id) {
 		connectedClients[client.handshake.session!.user_id] = client;
 		//Define all socket.io events here
 		client.on("send", (data) => {
@@ -26,7 +26,7 @@ module.exports = function (client: socketIO.Socket) {
 				],
 				function (err, result) {
 					if (err) console.log(err);
-					client.emit("got msg for " + data["reciever"]);
+					client.emit("ACK", "got msg for " + data["reciever"]);
 				}
 			);
 			//Store message in db
@@ -42,13 +42,13 @@ module.exports = function (client: socketIO.Socket) {
 					client.send(result);
 				}
 			);
-			//Store message in db
 		});
 
 		client.on("disconnect", () => {
+			console.log("disconnected");
 			delete connectedClients[client.handshake.session!.user_id];
 		});
 	} else {
-		client.emit("not logged in");
+		client.emit("ACK", "not logged in");
 	}
 };
