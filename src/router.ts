@@ -192,7 +192,7 @@ router.post("/hassession", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("NO");
 	} else {
-		res.send("YES");
+		res.send(req.session!.user_id);
 	}
 });
 
