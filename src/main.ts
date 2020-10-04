@@ -52,8 +52,10 @@ io.use(
 		autoSave: true,
 	})
 );
-var messengerIO = io.of("/messages");
+
 io.on("connection", require("./messenger"));
+
+var messengerIO = io.of("/messages");
 
 //io ons and stuffs
 

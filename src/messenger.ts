@@ -26,7 +26,7 @@ module.exports = function (client: socketIO.Socket) {
 				],
 				function (err, result) {
 					if (err) console.log(err);
-					client.emit("ACK", "got msg for " + data["reciever"]);
+					else client.emit("ACK", "got msg for " + data["reciever"]);
 				}
 			);
 			//Store message in db
