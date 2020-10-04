@@ -25,13 +25,13 @@ var cors = require("cors");
 
 app.use(
 	cors({
-		origin: "http://localhost:3000",
+		origin: "http://localhost:5000",
 		credentials: true, // Allow session cookies
 	})
 );
 
 app.use(cookieParser());
-var whitelist = ["http://localhost:3000"];
+var whitelist = ["http://localhost:5000"];
 
 var corsOptions = {
 	origin: function (origin: string, callback: any) {
@@ -52,8 +52,8 @@ io.use(
 		autoSave: true,
 	})
 );
-var messengerIO = io.of("messages");
-messengerIO.on("connection", require("./messenger"));
+var messengerIO = io.of("/messages");
+io.on("connection", require("./messenger"));
 
 //io ons and stuffs
 
