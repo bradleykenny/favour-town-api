@@ -57,4 +57,4 @@ io.on("connection", require("./messenger"));
 
 //io ons and stuffs
 
-server.listen(5000, () => console.log("Server running"));
+server.listen(5000, () => console.log("Server running on port 5000"));
