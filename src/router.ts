@@ -14,16 +14,30 @@ const saltRounds = 10;
 
 //Return number of favours requested by users, specified by count
 router.get("/favours", (req: Request, res: Response) => {
-	const count: Number =
-		req.query["count"] != undefined ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
-	db.query(
-		"SELECT f.*, u.username FROM Favour f JOIN User u ON f.user_id = u._id LIMIT ?",
-		[count],
-		function (err, result) {
-			if (err) console.log(err), res.send("error");
-			res.send(result); //Send back list of object returned by SQL query
-		}
-	);
+	var query: string =
+		"SELECT f.*, u.username FROM Favour f JOIN User u ON f.user_id = u._id";
+	var where_strings: string[] = [];
+	var placeholder_vars: any = [];
+
+	if (req.query["location"]) {
+		where_strings.push("f.location=?");
+		placeholder_vars.push(req.query["location"]);
+	}
+	if (where_strings.length > 0) {
+		query += " WHERE " + where_strings.join(" AND ");
+	}
+
+	const page: number = req.query["page"] ? Number(req.query["page"]) - 1 : 0; //Default to 20 if no count is given
+
+	const count: number = req.query["count"] ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
+	query += " ORDER BY date DESC LIMIT ?,?";
+	db.query(query, placeholder_vars.concat([page * count, count]), function (
+		err,
+		result
+	) {
+		if (err) console.log(err), res.send("error");
+		res.send(result); //Send back list of object returned by SQL query
+	});
 });
 
 //Post request to submit a favour
