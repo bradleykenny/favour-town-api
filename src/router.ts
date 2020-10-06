@@ -15,22 +15,27 @@ const saltRounds = 10;
 //Return number of favours requested by users, specified by count
 router.get("/favours", (req: Request, res: Response) => {
 	var query: string =
-		"SELECT f.*, u.username FROM Favour f JOIN User u ON f.user_id = u._id";
+		"SELECT f.*, u.username, GROUP_CONCAT(fc.category) AS columns FROM Favour f JOIN User u ON f.user_id = u._id LEFT JOIN Favour_Categories fc ON f._id=fc._id";
 	var where_strings: string[] = [];
 	var placeholder_vars: any = [];
-
 	if (req.query["location"]) {
 		where_strings.push("f.location=?");
 		placeholder_vars.push(req.query["location"]);
 	}
+	if (req.query["categories"]) {
+		//Expected for categories to be sent in csv format
+		where_strings.push("fc.category IN (?)");
+		placeholder_vars.push(req.query["category"]);
+	}
+
 	if (where_strings.length > 0) {
 		query += " WHERE " + where_strings.join(" AND ");
 	}
 
-	const page: number = req.query["page"] ? Number(req.query["page"]) - 1 : 0; //Default to 20 if no count is given
+	const page: number = req.query["page"] ? Number(req.query["page"]) - 1 : 0; //Default to 0 if no page number is given
 
 	const count: number = req.query["count"] ? Number(req.query["count"]) : 20; //Default to 20 if no count is given
-	query += " ORDER BY date DESC LIMIT ?,?";
+	query += " GROUP BY f._id ORDER BY date DESC LIMIT ?,?";
 	db.query(query, placeholder_vars.concat([page * count, count]), function (
 		err,
 		result
@@ -74,11 +79,13 @@ router.post("/favours", (req: Request, res: Response) => {
 				return favourTypeEnum.REQUEST;
 		}
 	})(req.body["type"]);
+	var inserted = false;
+	const favour_id = "fvr_" + uuid();
 
 	db.query(
 		sqlQuery,
 		[
-			"fvr_" + uuid(),
+			favour_id,
 			req.session!.user_id, //Replace with session id when sessions is ready
 			req.body["title"],
 			req.body["location"],
@@ -89,6 +96,15 @@ router.post("/favours", (req: Request, res: Response) => {
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			res.send("OK"); // Send back OK if successfully inserted
+			req.body["categories"].forEach((category: string) => {
+				db.query(
+					"INSERT INTO Favour_Categories (_id,category) VALUES (?,?)",
+					[favour_id, category],
+					function (err, result) {
+						if (err) console.log(err), res.send("error");
+					}
+				);
+			});
 		}
 	);
 });
