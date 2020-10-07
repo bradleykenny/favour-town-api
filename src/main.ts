@@ -59,4 +59,4 @@ var messengerIO = io.of("/messages");
 
 //io ons and stuffs
 
-server.listen(5000, () => console.log("Server running"));
+server.listen(5000, () => console.log("Server running on port 5000"));
