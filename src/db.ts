@@ -6,6 +6,7 @@ var sqlConn: Connection = mysql.createConnection({
 	user: process.env.FT_USER,
 	password: process.env.FT_PASSWORD,
 	database: process.env.FT_DB,
+	multipleStatements: true,
 });
 
 sqlConn.connect(function (err) {

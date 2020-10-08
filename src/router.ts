@@ -109,6 +109,28 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 });
+router.post("/rating", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	db.query(
+		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
+		`UPDATE User SET user_rating=?,rating_count=rating_count+1 WHERE _id=? AND rating_count=0;
+		UPDATE User SET user_rating=(user_rating+?)/2,rating_count=rating_count+1 WHERE _id=? AND rating_count>0`,
+		[
+			req.body["rating"],
+			req.body["user_id"],
+			req.body["rating"],
+			req.body["user_id"],
+		],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else console.log(result), res.send("OK");
+		}
+	);
+});
 
 router.post("/favours/send_request", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
@@ -126,13 +148,13 @@ router.post("/favours/send_request", (req: Request, res: Response) => {
 				console.log(
 					req.session!.user_id,
 					"attempted to send request for invalid favour",
-					req.params.favour_id
+					req.body["favour_id"]
 				);
 			} else {
 				console.log(result);
 				db.query(
-					`INSERT IGNORE INTO Favour_Requests (favour_id, user_id) VALUES (?,?)`,
-					[req.params.favour_id, req.session!.user_id],
+					`INSERT INTO Favour_Requests (favour_id, user_id) VALUES (?,?)`,
+					[req.body["favour_id"], req.session!.user_id],
 					function (err, result) {
 						if (err) console.log(err), res.send("error");
 						else res.send("OK");
