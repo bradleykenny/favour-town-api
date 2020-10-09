@@ -9,7 +9,6 @@ const favourTypeEnum = {
 	REQUEST: 0,
 	OFFER: 1,
 };
-
 const saltRounds = 10;
 
 //Return number of favours requested by users, specified by count
@@ -48,12 +47,13 @@ router.get("/favours", (req: Request, res: Response) => {
 //Post request to submit a favour
 //TODO: Determine valid user once login system works
 router.post("/favours", (req: Request, res: Response) => {
+	//check if user is valid
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
-	//check if user is valid
+
 	db.query(
 		"SELECT _id FROM User WHERE _id=?",
 		[req.session!.user_id],
@@ -323,7 +323,7 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ? OR u._id = ?",
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter,u.user_rating f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ? OR u._id = ?",
 		[username, username],
 		function (err, result) {
 			if (err) throw err;
