@@ -14,7 +14,7 @@ const saltRounds = 10;
 //Return number of favours requested by users, specified by count
 router.get("/favours", (req: Request, res: Response) => {
 	var query: string =
-		"SELECT f.*, u.username, GROUP_CONCAT(fc.category) AS columns FROM Favour f JOIN User u ON f.user_id = u._id LEFT JOIN Favour_Categories fc ON f._id=fc._id";
+		"SELECT f.*, u.username, GROUP_CONCAT(fc.category) AS categories FROM Favour f JOIN User u ON f.user_id = u._id LEFT JOIN Favour_Categories fc ON f._id=fc._id";
 	var where_strings: string[] = [];
 	var placeholder_vars: any = [];
 	if (req.query["location"]) {
@@ -68,6 +68,8 @@ router.post("/favours", (req: Request, res: Response) => {
 			}
 		}
 	);
+
+	const favour = JSON.parse(req.body["payload"]);
 	const sqlQuery = `INSERT INTO Favour (_id, user_id, title, location, description, favour_coins, favour_type, date) VALUES (?,?,?,?,?,?,?,NOW())`;
 	const type: number = (function (typeString) {
 		switch (typeString) {
@@ -115,17 +117,23 @@ router.post("/rating", (req: Request, res: Response) => {
 	}
 	db.query(
 		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
-		`UPDATE User SET user_rating=?,rating_count=rating_count+1 WHERE _id=? AND rating_count=0;
-		UPDATE User SET user_rating=(user_rating+?)/2,rating_count=rating_count+1 WHERE _id=? AND rating_count>0`,
-		[
-			req.body["rating"],
-			req.body["user_id"],
-			req.body["rating"],
-			req.body["user_id"],
-		],
+		`INSERT INTO User_Ratings (user_id, critic_id,rating) VALUES (?,?,?)`,
+		[req.body["user_id"], req.session!.user_id, req.body["rating"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else console.log(result), res.send("OK");
+		}
+	);
+});
+
+router.get("/rating/:user_id", (req: Request, res: Response) => {
+	db.query(
+		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
+		`SELECT AVG(rating) as rating FROM User_Ratings WHERE user_id=?`,
+		[req.params.user_id],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else res.send(result);
 		}
 	);
 });
@@ -137,11 +145,17 @@ router.post("/favours/send_request", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		"SELECT _id FROM Favour WHERE _id=?",
+		"SELECT _id FROM Favour WHERE _id=? AND favour_status=0",
 		[req.body["favour_id"]],
 		function (err, result) {
-			if (err) console.log(err), res.send("error");
-			if (result.length == 0) {
+			if (err) {
+				console.log(err);
+				if (err.code == "ER_DUP_ENTRY") {
+					res.send("duplicate");
+				} else {
+					res.send("error");
+				}
+			} else if (result.length == 0) {
 				res.send("invalid favour id");
 				console.log(
 					req.session!.user_id,
@@ -203,11 +217,17 @@ router.post("/favours/accept_request", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		"SELECT f._id, f.user_id, r.user_id FROM Favour AS f JOIN Favour_Requests r WHERE f._id=? AND f.user_id=? AND r.user_id=?",
-		[req.body["favour_id"], req.session!.user_id, req.body["requestor"]],
+		"UPDATE Favour SET favour_status=1,assigned_user_id=? WHERE _id=? AND favour_status=0 AND user_id=? AND EXISTS(SELECT r.user_id FROM Favour_Requests r WHERE r.favour_id=? AND r.user_id=?);",
+		[
+			req.body["requestor"],
+			req.body["favour_id"],
+			req.session!.user_id,
+			req.body["favour_id"],
+			req.body["requestor"],
+		],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
-			if (result.length == 0) {
+			else if (result["affectedRows"] == 0) {
 				res.send("invalid user ids or favour id");
 				console.log(
 					req.session!.user_id,
@@ -217,7 +237,15 @@ router.post("/favours/accept_request", (req: Request, res: Response) => {
 					req.body["requestor"]
 				);
 			} else {
-				//TODO: Change favour status and add requestor to carry out favour
+				db.query(
+					"DELETE FROM Favour_Requests WHERE favour_id=?", //Delete other requests
+					[req.body["favour_id"]],
+					function (err, result) {
+						console.log(result);
+						if (err) console.log(err), res.send("error");
+						res.send("OK");
+					}
+				);
 			}
 		}
 	);
