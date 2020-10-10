@@ -96,16 +96,20 @@ router.post("/favours", (req: Request, res: Response) => {
 		],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
-			res.send("OK"); // Send back OK if successfully inserted
-			req.body["categories"].forEach((category: string) => {
-				db.query(
-					"INSERT INTO Favour_Categories (_id,category) VALUES (?,?)",
-					[favour_id, category],
-					function (err, result) {
-						if (err) console.log(err), res.send("error");
+			if (req.body["categories"]) {
+				JSON.parse(req.body["categories"]).forEach(
+					(category: string) => {
+						db.query(
+							"INSERT INTO Favour_Categories (_id,category) VALUES (?,?)",
+							[favour_id, category],
+							function (err, result) {
+								if (err) console.log(err), res.send("error");
+							}
+						);
 					}
 				);
-			});
+			}
+			res.send("OK"); // Send back OK if successfully inserted
 		}
 	);
 });
