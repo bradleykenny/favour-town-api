@@ -45,7 +45,6 @@ router.get("/favours", (req: Request, res: Response) => {
 });
 
 //Post request to submit a favour
-//TODO: Determine valid user once login system works
 router.post("/favours", (req: Request, res: Response) => {
 	//check if user is valid
 	if (!req.session!.user_id) {
@@ -96,8 +95,8 @@ router.post("/favours", (req: Request, res: Response) => {
 		],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
-			if (req.body["categories"]) {
-				JSON.parse(req.body["categories"]).forEach(
+			if (req.body["categories"]) { 
+				JSON.parse(req.body["categories"]).forEach( //Expects category field to be in JSON format (list of strings)
 					(category: string) => {
 						db.query(
 							"INSERT INTO Favour_Categories (_id,category) VALUES (?,?)",
@@ -113,6 +112,8 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 });
+// Post a rating on a user. 
+//Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -120,8 +121,7 @@ router.post("/rating", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
-		`INSERT INTO User_Ratings (user_id, critic_id,rating) VALUES (?,?,?)`,
+`INSERT INTO User_Ratings (user_id, critic_id,rating) VALUES (?,?,?)`,
 		[req.body["user_id"], req.session!.user_id, req.body["rating"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
@@ -130,6 +130,8 @@ router.post("/rating", (req: Request, res: Response) => {
 	);
 });
 
+// Fetches a single value corresponding to the average rating of the user id
+// Expects user_id in url
 router.get("/rating/:user_id", (req: Request, res: Response) => {
 	db.query(
 		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
@@ -142,7 +144,8 @@ router.get("/rating/:user_id", (req: Request, res: Response) => {
 	);
 });
 
-// List all Favours based on current user session???
+// List all requests available for a specific favour owned by the logged in user
+// Expects favour_id (id of favour to fetch requests for)
 router.post("/favours/request/list", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -176,7 +179,8 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 	);
 });
 
-// Send request to get a Favour
+// Send request to get a specific favour
+// Expects favour_id (id of favour to send a request for)
 router.post("/favours/request/send", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -221,6 +225,7 @@ router.post("/favours/request/send", (req: Request, res: Response) => {
 });
 
 // User is able to accept Favour request
+// Expects requestor (id of user whose request is being accepted) and favour_id (id of favour to accept request for)
 router.post("/favours/request/accept", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
