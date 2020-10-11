@@ -202,7 +202,11 @@ router.post("/favours/request/send", (req: Request, res: Response) => {
 					req.body["favour_id"]
 				);
 			} else {
-				console.log(result);
+				console.log(
+					req.session!.user_id,
+					"sent a request for favour",
+					req.body["favour_id"]
+				);
 				db.query(
 					`INSERT INTO Favour_Requests (favour_id, user_id) VALUES (?,?)`,
 					[req.body["favour_id"], req.session!.user_id],
@@ -358,7 +362,7 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter,u.user_rating f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ? OR u._id = ?",
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ? OR u._id = ?",
 		[username, username],
 		function (err, result) {
 			if (err) throw err;
