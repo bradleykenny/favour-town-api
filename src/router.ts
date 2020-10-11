@@ -142,7 +142,7 @@ router.get("/rating/:user_id", (req: Request, res: Response) => {
 	);
 });
 
-router.post("/favours/send_request", (req: Request, res: Response) => {
+router.post("/favours/request/send", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
@@ -181,7 +181,7 @@ router.post("/favours/send_request", (req: Request, res: Response) => {
 	);
 });
 
-router.post("/favours/list_request", (req: Request, res: Response) => {
+router.post("/favours/request/list", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
@@ -214,7 +214,7 @@ router.post("/favours/list_request", (req: Request, res: Response) => {
 	);
 });
 
-router.post("/favours/accept_request", (req: Request, res: Response) => {
+router.post("/favours/request/accept", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
