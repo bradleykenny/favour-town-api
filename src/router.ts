@@ -142,6 +142,41 @@ router.get("/rating/:user_id", (req: Request, res: Response) => {
 	);
 });
 
+// List all Favours based on current user session???
+router.post("/favours/request/list", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	db.query(
+		"SELECT _id,user_id FROM Favour WHERE _id=? AND user_id=?",
+		[req.body["favour_id"], req.session!.user_id],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			if (result.length == 0) {
+				res.send("invalid favour id");
+				console.log(
+					req.session!.user_id,
+					"attempted to send request for invalid favour",
+					req.body["favour_id"],
+					"either favour/user doesn't exist, or user does not own favour"
+				);
+			} else {
+				db.query(
+					`SELECT * FROM Favour_Requests WHERE favour_id=?`,
+					[req.body["favour_id"]],
+					function (err, result) {
+						if (err) console.log(err), res.send("error");
+						else res.send(result);
+					}
+				);
+			}
+		}
+	);
+});
+
+// Send request to get a Favour
 router.post("/favours/request/send", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -181,39 +216,7 @@ router.post("/favours/request/send", (req: Request, res: Response) => {
 	);
 });
 
-router.post("/favours/request/list", (req: Request, res: Response) => {
-	if (!req.session!.user_id) {
-		res.send("Not logged in!");
-		console.log("Invalid session with session data:", req.session);
-		return;
-	}
-	db.query(
-		"SELECT _id,user_id FROM Favour WHERE _id=? AND user_id=?",
-		[req.body["favour_id"], req.session!.user_id],
-		function (err, result) {
-			if (err) console.log(err), res.send("error");
-			if (result.length == 0) {
-				res.send("invalid favour id");
-				console.log(
-					req.session!.user_id,
-					"attempted to send request for invalid favour",
-					req.body["favour_id"],
-					"either favour/user doesn't exist, or user does not own favour"
-				);
-			} else {
-				db.query(
-					`SELECT * FROM Favour_Requests WHERE favour_id=?`,
-					[req.body["favour_id"]],
-					function (err, result) {
-						if (err) console.log(err), res.send("error");
-						else res.send(result);
-					}
-				);
-			}
-		}
-	);
-});
-
+// User is able to accept Favour request
 router.post("/favours/request/accept", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
