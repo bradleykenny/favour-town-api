@@ -46,7 +46,8 @@ router.get("/favours", (req: Request, res: Response) => {
 
 //Return information on particular Favour given the ID
 router.get("/favours/:id", (req: Request, res: Response) => {
-	var query: string = "SELECT f.* FROM Favour f WHERE f._id=?";
+	var query: string =
+		"SELECT f.*,u.username FROM Favour f JOIN User u ON f.user_id=u._id WHERE f._id=?";
 	db.query(query, req.params.id, function (err, result) {
 		if (err) console.log(err), res.send("error");
 		res.send(result); //Send back list of object returned by SQL query
