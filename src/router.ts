@@ -163,8 +163,8 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		"SELECT f._id,f.user_id FROM Favour f WHERE f._id=? AND f.user_id=?",
-		[req.body["favour_id"], req.session!.user_id],
+		"SELECT f._id,f.user_id FROM Favour f WHERE f._id=?",
+		[req.body["favour_id"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			if (result.length == 0) {
@@ -415,7 +415,7 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, u.f_name, u.l_nmame FROM User u WHERE u.username = ? OR u._id = ?",
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, u.f_name, u.l_name FROM User u WHERE u.username = ? OR u._id = ?",
 		[username, username],
 		function (err, result) {
 			if (err) throw err;
