@@ -278,6 +278,39 @@ router.post("/favours/request/accept", (req: Request, res: Response) => {
 	);
 });
 
+router.post("/favours/request/reject", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+
+	db.query(
+		"DELETE FROM Favour_Requests fr WHERE fr.favour_id=? AND fr.user_id=? EXISTS(SELECT f.user_id FROM Favour f WHERE f.favour_id=? AND f.user_id=?)", //Delete other requests
+		[
+			req.body["favour_id"],
+			req.body["requestor"],
+			req.body["favour_id"],
+			req.session!.user_id,
+		],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else if (result["affectedRows"] == 0) {
+				res.send("invalid user ids or favour id");
+				console.log(
+					req.session!.user_id,
+					"attempted to send request for invalid favour",
+					req.body["favour_id"],
+					"or get request for invalid user",
+					req.body["requestor"]
+				);
+			} else {
+				res.send("OK");
+			}
+		}
+	);
+});
+
 router.post("/login", (req: Request, res: Response) => {
 	//TODO: After sprint 1 add the capability to login with email as well
 	const sqlQuery: string =
@@ -383,7 +416,7 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, f.title FROM User u LEFT JOIN Favour f ON u._id = f.user_id WHERE u.username = ? OR u._id = ?",
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, u.f_name, u.l_nmame FROM User u WHERE u.username = ? OR u._id = ?",
 		[username, username],
 		function (err, result) {
 			if (err) throw err;
