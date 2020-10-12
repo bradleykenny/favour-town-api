@@ -432,6 +432,22 @@ router.post("/hassession", (req: Request, res: Response) => {
 	}
 });
 
+router.post("/account/location", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		return;
+	}
+	const sqlQuery: string = "UPDATE User SET location=? WHERE _id=?";
+	db.query(sqlQuery, [req.body["location"], req.session!.user_id], function (
+		err,
+		result
+	) {
+		if (err) console.log(err);
+		console.log(result);
+		res.send("OK"); // Send back OK if successfully registered
+	});
+});
+
 router.post("/account/password", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
