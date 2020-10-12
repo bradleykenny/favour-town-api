@@ -14,7 +14,6 @@ const user_session = session({
 	resave: false,
 	cookie: {
 		secure: false,
-		maxAge: 60000,
 	},
 });
 app.use(user_session);

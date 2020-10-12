@@ -163,7 +163,7 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		"SELECT f._id,f.user_id,u.username, u.f_name,u.l_name FROM Favour f JOIN User u ON f.user_id=u._id WHERE f._id=? AND f.user_id=?",
+		"SELECT f._id,f.user_id FROM Favour f WHERE f._id=? AND f.user_id=?",
 		[req.body["favour_id"], req.session!.user_id],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
@@ -177,7 +177,7 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 				);
 			} else {
 				db.query(
-					`SELECT * FROM Favour_Requests WHERE favour_id=?`,
+					`SELECT fr.*,u.username, u.f_name,u.l_name FROM Favour_Requests fr JOIN User u ON u._id=fr.user_id WHERE favour_id=?`,
 					[req.body["favour_id"]],
 					function (err, result) {
 						if (err) console.log(err), res.send("error");
@@ -302,7 +302,6 @@ router.post("/login", (req: Request, res: Response) => {
 							user_id: result[0]["_id"],
 						};
 					});
-
 					res.send("OK");
 				} else {
 					console.log(
