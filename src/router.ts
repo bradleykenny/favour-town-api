@@ -44,6 +44,15 @@ router.get("/favours", (req: Request, res: Response) => {
 	});
 });
 
+//Return information on particular Favour given the ID
+router.get("/favours/:id", (req: Request, res: Response) => {
+	var query: string = "SELECT f.* FROM Favour f WHERE f._id=?";
+	db.query(query, req.params.id, function (err, result) {
+		if (err) console.log(err), res.send("error");
+		res.send(result); //Send back list of object returned by SQL query
+	});
+});
+
 //Post request to submit a favour
 router.post("/favours", (req: Request, res: Response) => {
 	//check if user is valid
@@ -95,8 +104,9 @@ router.post("/favours", (req: Request, res: Response) => {
 		],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
-			if (req.body["categories"]) { 
-				JSON.parse(req.body["categories"]).forEach( //Expects category field to be in JSON format (list of strings)
+			if (req.body["categories"]) {
+				JSON.parse(req.body["categories"]).forEach(
+					//Expects category field to be in JSON format (list of strings)
 					(category: string) => {
 						db.query(
 							"INSERT INTO Favour_Categories (_id,category) VALUES (?,?)",
@@ -112,7 +122,7 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 });
-// Post a rating on a user. 
+// Post a rating on a user.
 //Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
@@ -121,7 +131,7 @@ router.post("/rating", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-`INSERT INTO User_Ratings (user_id, critic_id,rating) VALUES (?,?,?)`,
+		`INSERT INTO User_Ratings (user_id, critic_id,rating) VALUES (?,?,?)`,
 		[req.body["user_id"], req.session!.user_id, req.body["rating"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
