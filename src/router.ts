@@ -78,7 +78,6 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 
-	const favour = JSON.parse(req.body["payload"]);
 	const sqlQuery = `INSERT INTO Favour (_id, user_id, title, location, description, favour_coins, favour_type, date) VALUES (?,?,?,?,?,?,?,NOW())`;
 	const type: number = (function (typeString) {
 		switch (typeString) {
@@ -299,9 +298,9 @@ router.post("/favours/request/reject", (req: Request, res: Response) => {
 				res.send("invalid user ids or favour id");
 				console.log(
 					req.session!.user_id,
-					"attempted to send request for invalid favour",
+					"attempted to reject request for invalid favour",
 					req.body["favour_id"],
-					"or get request for invalid user",
+					"or delete request for invalid user",
 					req.body["requestor"]
 				);
 			} else {
