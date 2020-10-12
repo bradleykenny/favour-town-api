@@ -163,7 +163,7 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		"SELECT _id,user_id FROM Favour WHERE _id=? AND user_id=?",
+		"SELECT f._id,f.user_id,u.username, u.f_name,u.l_name FROM Favour f JOIN User u ON f.user_id=u._id WHERE f._id=? AND f.user_id=?",
 		[req.body["favour_id"], req.session!.user_id],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
@@ -296,7 +296,13 @@ router.post("/login", (req: Request, res: Response) => {
 				if (err) console.log(err), res.send("error");
 				if (correct) {
 					req.session!.user_id = result[0]["_id"]; // Send back OK if successfully inserted
-					console.log(req.session);
+					req.session!.save(() => {
+						console.log(req.session);
+						return {
+							user_id: result[0]["_id"],
+						};
+					});
+
 					res.send("OK");
 				} else {
 					console.log(
