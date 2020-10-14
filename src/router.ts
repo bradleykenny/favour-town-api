@@ -491,11 +491,11 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.user_rating, u.f_name, u.l_name FROM User u WHERE u.username = ? OR u._id = ?",
-		[username, username],
+		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.f_name, u.l_name, r.rating FROM User u LEFT JOIN (SELECT AVG(rating),0 as rating, user_id FROM User_Ratings r) r ON u._id=r.user_id WHERE u._id=?",
+		[username],
 		function (err, result) {
-			if (err) throw err;
-			res.send(result); //Send back list of object returned by SQL query
+			if (err) console.log(err), res.send("error");
+			else res.send(result); //Send back list of object returned by SQL query
 		}
 	);
 });
