@@ -12,10 +12,12 @@ module.exports = function (client: socketIO.Socket) {
 		client.on("send", (data) => {
 			//Should send the reciever and the message itself
 			if (connectedClients.hasOwnProperty(data["reciever"])) {
-				connectedClients[data["reciever"]].emit("incoming", {
-					sender: client.handshake.session!.user_id,
-					message: data["message"],
-				});
+				connectedClients[data["reciever"]].emit("incoming", [
+					{
+						sender_id: client.handshake.session!.user_id,
+						content: data["message"],
+					},
+				]);
 			}
 			db.query(
 				"INSERT INTO Messages (sender_id,reciever_id, content,date) VALUES (?,?,?,NOW())", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
@@ -35,11 +37,11 @@ module.exports = function (client: socketIO.Socket) {
 		client.on("recieve", (data) => {
 			//Client sends the number of messages loaded, and the user id they want to recieve messages from
 			db.query(
-				"SELECT content FROM Messages WHERE user_id=? ORDER BY date LIMIT ?,10", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+				"SELECT sender_id,content,date FROM Messages WHERE sender_id=? ORDER BY date LIMIT ?,10", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
 				[data["sender"], data["loaded"]],
 				function (err, result) {
 					if (err) throw err;
-					client.send(result);
+					client.emit("incoming", result);
 				}
 			);
 		});

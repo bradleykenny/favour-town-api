@@ -9,6 +9,12 @@ const favourTypeEnum = {
 	REQUEST: 0,
 	OFFER: 1,
 };
+
+const favourStatusEnum = {
+	OPEN: 0,
+	CLAIMED: 1,
+	COMPLETE: 2,
+};
 const saltRounds = 10;
 
 //Return number of favours requested by users, specified by count
@@ -25,6 +31,38 @@ router.get("/favours", (req: Request, res: Response) => {
 		//Expected for categories to be sent in csv format
 		where_strings.push("fc.category IN (?)");
 		placeholder_vars.push(req.query["category"]);
+	}
+	if (req.query["favourType"]) {
+		//Expected for categories to be sent in csv format
+		switch (req.query["favourType"]) {
+			case "request":
+				placeholder_vars.push(favourTypeEnum.REQUEST);
+				break;
+			case "offer":
+				placeholder_vars.push(favourTypeEnum.OFFER);
+				break;
+			default:
+				return; //Skip
+		}
+		where_strings.push("f.favour_type=?");
+	}
+
+	if (req.query["favourStatus"]) {
+		//Expected for categories to be sent in csv format
+		switch (req.query["favourStatus"]) {
+			case "open":
+				placeholder_vars.push(favourStatusEnum.OPEN);
+				break;
+			case "claimed":
+				placeholder_vars.push(favourStatusEnum.CLAIMED);
+				break;
+			case "complete":
+				placeholder_vars.push(favourStatusEnum.COMPLETE);
+				break;
+			default:
+				return; //Skip
+		}
+		where_strings.push("f.favour_status=?");
 	}
 
 	if (where_strings.length > 0) {
@@ -276,7 +314,8 @@ router.post("/favours/request/accept", (req: Request, res: Response) => {
 		}
 	);
 });
-
+// Allow a request to be rejected
+// Expects the favour_id, requestor (user id)
 router.post("/favours/request/reject", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -305,6 +344,43 @@ router.post("/favours/request/reject", (req: Request, res: Response) => {
 				);
 			} else {
 				res.send("OK");
+			}
+		}
+	);
+});
+
+//Allows sign off on favours
+router.post("/favours/complete", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+
+	db.query(
+		"UPDATE Favour SET favour_status=2 WHERE _id=? AND favour_status=1 AND user_id=?",
+		[req.body["favour_id"], req.session!.user_id],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else if (result["affectedRows"] == 0) {
+				res.send("invalid user ids or favour id");
+				console.log(
+					req.session!.user_id,
+					"attempted to send request for invalid favour",
+					req.body["favour_id"],
+					"or get request for invalid user",
+					req.body["requestor"]
+				);
+			} else {
+				db.query(
+					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=?", //Delete other requests
+					[req.body["favour_id"], req.session!.user_id],
+					function (err, result) {
+						console.log(result);
+						if (err) console.log(err), res.send("error");
+						res.send("OK");
+					}
+				);
 			}
 		}
 	);
