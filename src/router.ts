@@ -178,20 +178,6 @@ router.post("/rating", (req: Request, res: Response) => {
 	);
 });
 
-// Fetches a single value corresponding to the average rating of the user id
-// Expects user_id in url
-router.get("/rating/:user_id", (req: Request, res: Response) => {
-	db.query(
-		//TODO: This query is bad and will double up, and does not check if the user has already rated this user. Need to work out a better solution
-		`SELECT AVG(rating) as rating FROM User_Ratings WHERE user_id=?`,
-		[req.params.user_id],
-		function (err, result) {
-			if (err) console.log(err), res.send("error");
-			else res.send(result);
-		}
-	);
-});
-
 // List all requests available for a specific favour owned by the logged in user
 // Expects favour_id (id of favour to fetch requests for)
 router.post("/favours/request/list", (req: Request, res: Response) => {
@@ -387,7 +373,6 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 });
 
 router.post("/login", (req: Request, res: Response) => {
-	//TODO: After sprint 1 add the capability to login with email as well
 	const sqlQuery: string =
 		"SELECT _id, username, password FROM User WHERE username=?";
 	db.query(sqlQuery, [req.body["username"]], function (err, result) {
