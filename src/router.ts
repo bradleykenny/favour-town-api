@@ -37,14 +37,15 @@ router.get("/favours", (req: Request, res: Response) => {
 		switch (req.query["favourType"]) {
 			case "request":
 				placeholder_vars.push(favourTypeEnum.REQUEST);
+				where_strings.push("f.favour_type=?");
 				break;
 			case "offer":
 				placeholder_vars.push(favourTypeEnum.OFFER);
+				where_strings.push("f.favour_type=?");
 				break;
 			default:
-				return; //Skip
+				break; //Skip
 		}
-		where_strings.push("f.favour_type=?");
 	}
 
 	if (req.query["favourStatus"]) {
@@ -52,17 +53,20 @@ router.get("/favours", (req: Request, res: Response) => {
 		switch (req.query["favourStatus"]) {
 			case "open":
 				placeholder_vars.push(favourStatusEnum.OPEN);
+				where_strings.push("f.favour_status=?");
 				break;
 			case "claimed":
 				placeholder_vars.push(favourStatusEnum.CLAIMED);
+				where_strings.push("f.favour_status=?");
 				break;
 			case "complete":
 				placeholder_vars.push(favourStatusEnum.COMPLETE);
+
+				where_strings.push("f.favour_status=?");
 				break;
 			default:
-				return; //Skip
+				break; //Skip
 		}
-		where_strings.push("f.favour_status=?");
 	}
 
 	if (where_strings.length > 0) {
