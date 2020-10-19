@@ -421,10 +421,18 @@ router.post("/logout", (req: Request, res: Response) => {
 		return;
 	}
 	else{
-		console.log("this ran");
-		req.session?.destroy;
-		res.send("OK");
-	}
+			console.log("this ran");
+			req.session!.destroy(function(err) {
+				if(err){
+					res.send(err)
+				}
+				else{
+					req.session!=null;
+					console.log("Logged Out")
+					res.send("OK");
+				}
+			});
+		}
 	console.log(req.session);
 
 });
