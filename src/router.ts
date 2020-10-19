@@ -410,6 +410,21 @@ router.post("/login", (req: Request, res: Response) => {
 	});
 });
 
+router.post("/logout", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("ERROR: Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	else{
+		console.log("this ran");
+		req.session?.destroy;
+		res.send("OK");
+	}
+	console.log(req.session);
+
+});
+
 router.post("/register", (req: Request, res: Response, next: NextFunction) => {
 	//Check user valid
 	const sqlQuery: string = `INSERT INTO User (_id, f_name, l_name, username, password, email_addr, favour_counter) VALUES (?,?,?,?,?,?,?)`;
