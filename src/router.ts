@@ -363,14 +363,42 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 				);
 			} else {
 				db.query(
-					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=?", //Delete other requests
+					"UPDATE User SET favour_counter=favour_counter-(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=?", //Delete other requests
 					[req.body["favour_id"], req.session!.user_id],
 					function (err, result) {
 						console.log(result);
 						if (err) console.log(err), res.send("error");
-						res.send("OK");
+						else if (result["affectedRows"] == 0) {
+							res.send("invalid user ids or favour id");
+							console.log(
+								req.session!.user_id,
+								"attempted to send request for invalid favour",
+								req.body["favour_id"],
+								"or get request for invalid user",
+								req.body["requestor"]
+							);
+						}
 					}
 				);
+				db.query(
+					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE _id=?)", //Delete other requests
+					[req.body["favour_id"], req.session!.user_id,req.body["favour_id"]],
+					function (err, result) {
+						console.log(result);
+						if (err) console.log(err), res.send("error");
+						else if (result["affectedRows"] == 0) {
+							res.send("invalid user ids or favour id");
+							console.log(
+								req.session!.user_id,
+								"attempted to send request for invalid favour",
+								req.body["favour_id"],
+								"or get request for invalid user",
+								req.body["requestor"]
+							);
+						}
+					}
+				);
+				res.send("OK");
 			}
 		}
 	);
