@@ -24,13 +24,14 @@ const uploadFile = (fileName: any) => {
 	// Setting up S3 upload parameters
 	const params = {
 		Bucket: BUCKET_NAME,
-		Key: "cat.jpg", // File name you want to save as in S3
+		Key: fileName, // File name you want to save as in S3
 		Body: fileContent,
 	};
 
 	// Uploading files to the bucket
 	s3.upload(params, (err: any, data: any) => {
 		if (err) {
+			console.log('error in uploading');
 			throw err;
 		}
 		console.log("File uploaded successfully.");
