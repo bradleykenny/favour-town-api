@@ -164,6 +164,7 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 });
+
 // Post a rating on a user.
 //Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
