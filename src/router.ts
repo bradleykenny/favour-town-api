@@ -164,6 +164,7 @@ router.post("/favours", (req: Request, res: Response) => {
 		}
 	);
 });
+
 // Post a rating on a user.
 //Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
@@ -382,7 +383,11 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 				);
 				db.query(
 					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE _id=?)", //Delete other requests
-					[req.body["favour_id"], req.session!.user_id,req.body["favour_id"]],
+					[
+						req.body["favour_id"],
+						req.session!.user_id,
+						req.body["favour_id"],
+					],
 					function (err, result) {
 						console.log(result);
 						if (err) console.log(err), res.send("error");
@@ -447,22 +452,17 @@ router.post("/logout", (req: Request, res: Response) => {
 		res.send("ERROR: Not logged in!");
 		console.log("Invalid session with session data:", req.session);
 		return;
+	} else {
+		req.session!.destroy(function (err) {
+			if (err) {
+				res.send(err);
+			} else {
+				req.session != null;
+				console.log("Logged Out");
+				res.send("OK");
+			}
+		});
 	}
-	else{
-			console.log("this ran");
-			req.session!.destroy(function(err) {
-				if(err){
-					res.send(err)
-				}
-				else{
-					req.session!=null;
-					console.log("Logged Out")
-					res.send("OK");
-				}
-			});
-		}
-	console.log(req.session);
-
 });
 
 router.post("/register", (req: Request, res: Response, next: NextFunction) => {
