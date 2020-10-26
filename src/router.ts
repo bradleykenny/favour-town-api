@@ -166,7 +166,7 @@ router.post("/favours", (req: Request, res: Response) => {
 });
 
 // Post a rating on a user.
-//Expects user_id (id of user being critiqued) and rating (score of rating)
+// Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -305,6 +305,7 @@ router.post("/favours/request/accept", (req: Request, res: Response) => {
 		}
 	);
 });
+
 // Allow a request to be rejected
 // Expects the favour_id, requestor (user id)
 router.post("/favours/request/reject", (req: Request, res: Response) => {
@@ -614,5 +615,69 @@ router.post("/account/password", (req: Request, res: Response) => {
 		);
 	});
 });
+
+// POST profile image link to database
+router.post("/profileImage", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	db.query(
+		'UPDATE User SET image_link=? where _id=?'
+		[req.body["image_link"], req.session!.user_id, req.body["user_id"]],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else console.log(result), res.send("OK");
+		}
+	);
+});
+
+
+// router.get("/favours/:id", (req: Request, res: Response) => {
+// 	var query: string =
+// 		"SELECT image_link FROM User WHERE _id=?";
+// 	db.query(query, req.params.id, function (err, result) {
+// 		if (err) console.log(err), res.send("error");
+// 		res.send(result); //Send back list of object returned by SQL query
+// 	});
+// });
+
+//Return information on particular Favour given the ID
+router.get("/profileImage", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	db.query(
+		'SELECT image_link FROM User WHERE _id=?'
+		[req.body["user_id"], req.session!.user_id],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else console.log(result), res.send(result);
+		}
+	);
+});
+
+
+// // GET profile image link to database
+// router.post("/logout", (req: Request, res: Response) => {
+// 	if (!req.session!.user_id) {
+// 		res.send("ERROR: Not logged in!");
+// 		console.log("Invalid session with session data:", req.session);
+// 		return;
+// 	} else {
+// 		req.session!.destroy(function (err) {
+// 			if (err) {
+// 				res.send(err);
+// 			} else {
+// 				req.session != null;
+// 				console.log("Logged Out");
+// 				res.send("OK");
+// 			}
+// 		});
+// 	}
+// });
 
 module.exports = router;
