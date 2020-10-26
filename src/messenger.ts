@@ -8,6 +8,8 @@ var db: Connection = require("./db").db;
 module.exports = function (client: socketIO.Socket) {
 	if (client.handshake.session!.user_id) {
 		connectedClients[client.handshake.session!.user_id] = client;
+		console.log(client.handshake.session!.user_id)
+		client.emit("yourUser_id",client.handshake.session!.user_id)
 		db.query(
 			`SELECT friends.* FROM (SELECT u.username,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.receiver_id=? ORDER BY m.date) AS msg ON u._id=msg.sender_id 
 			UNION 
