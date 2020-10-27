@@ -618,14 +618,16 @@ router.post("/account/password", (req: Request, res: Response) => {
 
 // POST profile image link to database
 router.post("/profileImage", (req: Request, res: Response) => {
+	const awsLink: string ='https://favourtown.s3-ap-southeast-2.amazonaws.com/';
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
+	
 	db.query(
-		'UPDATE User SET image_link=? where _id=?'
-		[req.body["image_link"], req.session!.user_id, req.body["user_id"]],
+		'UPDATE User SET image_link=? where _id=?',
+		[awsLink + req.body["image_link"], req.body["user_id"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else console.log(result), res.send("OK");
@@ -643,7 +645,7 @@ router.post("/profileImage", (req: Request, res: Response) => {
 // 	});
 // });
 
-//Return information on particular Favour given the ID
+// GET profile image link to database
 router.get("/profileImage", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
