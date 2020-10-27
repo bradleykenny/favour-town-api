@@ -6,6 +6,7 @@ var db: Connection = require("./db").db;
 
 //TODO: Work out: messages via sockets or messages via
 module.exports = function (client: socketIO.Socket) {
+
 	if (client.handshake.session!.user_id) {
 		connectedClients[client.handshake.session!.user_id] = client;
 		client.emit("yourUser_id",client.handshake.session!.user_id)
@@ -63,7 +64,6 @@ module.exports = function (client: socketIO.Socket) {
 		});
 
 		client.on("disconnect", () => {
-			console.log("disconnected");
 			delete connectedClients[client.handshake.session!.user_id];
 		});
 	} else {
