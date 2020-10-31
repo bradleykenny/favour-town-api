@@ -9,7 +9,17 @@ module.exports = function (client: socketIO.Socket) {
 
 	if (client.handshake.session!.user_id) {
 		connectedClients[client.handshake.session!.user_id] = client;
-		client.emit("yourUser_id",client.handshake.session!.user_id)
+		db.query(
+			`SELECT username,_id FROM User WHERE _id=?
+			`, //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+			[
+				client.handshake.session!.user_id,
+			],
+			function (err, result) {
+				if (err) console.log(err);
+				client.emit("yourUser_id",result[0])
+			}
+		);
 		db.query(
 			`SELECT friends.* FROM (SELECT u.username,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.receiver_id=? ORDER BY m.date) AS msg ON u._id=msg.sender_id 
 			UNION 
@@ -28,11 +38,17 @@ module.exports = function (client: socketIO.Socket) {
 		//Define all socket.io events here
 		client.on("send", (data) => {
 			//Should send the receive and the message itself
-			if (connectedClients.hasOwnProperty(data["reciever"])) {
+			if (data["reciever"] in connectedClients) {
+			
+				const now=new Date();
 				connectedClients[data["reciever"]].emit("incoming", [
 					{
 						sender_id: client.handshake.session!.user_id,
+						receiver_id: data["reciever"],
+						username:data["author"],
 						content: data["message"],
+						image_link:data["avatar"],
+						date:now.toISOString()
 					},
 				]);
 			}
@@ -54,8 +70,8 @@ module.exports = function (client: socketIO.Socket) {
 		client.on("receive", (data) => { 
 			//Client sends the number of messages loaded, and the user id they want to receive messages from
 			db.query(
-				"SELECT m.*,u.username,u.image_link FROM Messages m LEFT JOIN User u ON u._id=m.sender_id  WHERE sender_id=? OR receiver_id=? ORDER BY date", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
-				[data["sender"],data["sender"]],
+				"SELECT m.*,u.username,u.image_link FROM Messages m LEFT JOIN User u ON u._id=m.sender_id  WHERE (sender_id=? AND receiver_id=?) OR (sender_id=? AND receiver_id=?) ORDER BY date", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+				[data["sender"],client.handshake.session!.user_id,client.handshake.session!.user_id,data["sender"]],
 				function (err, result) {
 					if (err) console.log(err);
 					client.emit("incoming", result);
