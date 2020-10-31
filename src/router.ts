@@ -165,7 +165,7 @@ router.post("/favours", (req: Request, res: Response) => {
 	);
 });
 
-// Edit a favour
+// Edit a favour, title, description, favour coins and location are all optional but need at least one. Need favour_id
 router.post("/favours/edit", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
