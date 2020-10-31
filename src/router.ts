@@ -172,40 +172,44 @@ router.post("/favours/edit", (req: Request, res: Response) => {
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
-
 	var sqlQuery="UPDATE Favour SET ";
-
 	var set_strings: string[] = [];
 	var placeholder_vars: any = [];
-	if (req.query["title"]) {
+	if (req.body["title"]) {
 		set_strings.push("title=?");
-		placeholder_vars.push(req.query["title"]);
-	}
-	if (req.query["description"]) {
-		set_strings.push("description=?");
-		placeholder_vars.push(req.query["description"]);
-	}
-	if (req.query["favour_coins"]) {
-		set_strings.push("favour_coins=?");
-		placeholder_vars.push(req.query["favour_coins"]);
-	}
-	if (req.query["location"]) {
-		set_strings.push("location=?");
-		placeholder_vars.push(req.query["location"]);
+		placeholder_vars.push(req.body["title"]);
 	}
 
+	if (req.body["description"]) {
+		set_strings.push("description=?");
+		placeholder_vars.push(req.body["description"]);
+	}
+	if (req.body["favour_coins"]) {
+		set_strings.push("favour_coins=?");
+		placeholder_vars.push(req.body["favour_coins"]);
+	}
+	if (req.body["location"]) {
+		set_strings.push("location=?");
+		placeholder_vars.push(req.body["location"]);
+	}
+	if (set_strings.length > 0) {
+		sqlQuery += set_strings.join(",");
+	} else{
+		res.send("You didn't send me anything >:(");
+		return;
+	}
+	console.log(sqlQuery,placeholder_vars)
+	
 
 	db.query(
-		sqlQuery, //Delete other requests
-		[
-			req.body["favour_id"],
-			req.session!.user_id
-		],
+		sqlQuery+" WHERE _id=? AND user_id=?", //Delete other requests
+		placeholder_vars.concat([req.body["favour_id"],req.session!.user_id])
+		,
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else if (result["affectedRows"] == 0) {
 				res.send("invalid user ids or favour id");
-				console.log(req.session!.user_id,"Never requested in the first place");
+				console.log(req.session!.user_id,"tried to edit",req.body["favour_id"], "despite not owning it, the silly bear");
 			} else {
 				res.send("OK");
 			}
