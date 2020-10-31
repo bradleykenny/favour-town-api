@@ -54,7 +54,7 @@ module.exports = function (client: socketIO.Socket) {
 		client.on("receive", (data) => { 
 			//Client sends the number of messages loaded, and the user id they want to receive messages from
 			db.query(
-				"SELECT * FROM Messages WHERE sender_id=? OR receiver_id=? ORDER BY date", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
+				"SELECT m.*,u.username,u.image_link FROM Messages m LEFT JOIN User u ON u._id=m.sender_id  WHERE sender_id=? OR receiver_id=? ORDER BY date", //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
 				[data["sender"],data["sender"]],
 				function (err, result) {
 					if (err) console.log(err);

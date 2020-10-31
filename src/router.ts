@@ -165,6 +165,54 @@ router.post("/favours", (req: Request, res: Response) => {
 	);
 });
 
+// Edit a favour
+router.post("/favours/edit", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+
+	var sqlQuery="UPDATE Favour SET ";
+
+	var set_strings: string[] = [];
+	var placeholder_vars: any = [];
+	if (req.query["title"]) {
+		set_strings.push("title=?");
+		placeholder_vars.push(req.query["title"]);
+	}
+	if (req.query["description"]) {
+		set_strings.push("description=?");
+		placeholder_vars.push(req.query["description"]);
+	}
+	if (req.query["favour_coins"]) {
+		set_strings.push("favour_coins=?");
+		placeholder_vars.push(req.query["favour_coins"]);
+	}
+	if (req.query["location"]) {
+		set_strings.push("location=?");
+		placeholder_vars.push(req.query["location"]);
+	}
+
+
+	db.query(
+		sqlQuery, //Delete other requests
+		[
+			req.body["favour_id"],
+			req.session!.user_id
+		],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else if (result["affectedRows"] == 0) {
+				res.send("invalid user ids or favour id");
+				console.log(req.session!.user_id,"Never requested in the first place");
+			} else {
+				res.send("OK");
+			}
+		}
+	);
+});
+
 // Post a rating on a user.
 // Expects user_id (id of user being critiqued) and rating (score of rating)
 router.post("/rating", (req: Request, res: Response) => {
@@ -218,6 +266,8 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 	);
 });
 
+
+
 // Send request to get a specific favour
 // Expects favour_id (id of favour to send a request for)
 router.post("/favours/request/send", (req: Request, res: Response) => {
@@ -262,6 +312,33 @@ router.post("/favours/request/send", (req: Request, res: Response) => {
 		}
 	);
 });
+
+// Allows a retraction of request. In case you dont want to do the thing anymore, just expects the favour id
+router.post("/favours/request/retract", (req: Request, res: Response) => {
+	if (!req.session!.user_id) {
+		res.send("Not logged in!");
+		console.log("Invalid session with session data:", req.session);
+		return;
+	}
+	db.query(
+		"DELETE FROM Favour_Requests fr WHERE fr.favour_id=? AND fr.user_id=?", //Delete other requests
+		[
+			req.body["favour_id"],
+			req.session!.user_id
+		],
+		function (err, result) {
+			if (err) console.log(err), res.send("error");
+			else if (result["affectedRows"] == 0) {
+				res.send("invalid user ids or favour id");
+				console.log(req.session!.user_id,"Never requested in the first place");
+			} else {
+				res.send("OK");
+			}
+		}
+	);
+});
+
+
 
 // User is able to accept Favour request
 // Expects requestor (id of user whose request is being accepted) and favour_id (id of favour to accept request for)
@@ -532,7 +609,7 @@ router.get("/listings/:username", (req: Request, res: Response) => {
 router.get("/profile/:username", (req: Request, res: Response) => {
 	const username = req.params.username;
 	db.query(
-		"SELECT u.username, u._id, u.email_addr, u.favour_counter, u.f_name, u.l_name, r.rating FROM User u LEFT JOIN (SELECT AVG(rating),0 as rating, user_id FROM User_Ratings r) r ON u._id=r.user_id WHERE u._id=? OR u.username=?",
+		"SELECT u.*, r.rating FROM User u LEFT JOIN (SELECT AVG(rating),0 as rating, user_id FROM User_Ratings r) r ON u._id=r.user_id WHERE u._id=? OR u.username=?",
 		[username, username],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
