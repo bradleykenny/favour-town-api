@@ -172,7 +172,7 @@ router.post("/favours/edit", (req: Request, res: Response) => {
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
-	var sqlQuery="UPDATE Favour SET ";
+	var sqlQuery = "UPDATE Favour SET ";
 	var set_strings: string[] = [];
 	var placeholder_vars: any = [];
 	if (req.body["title"]) {
@@ -194,22 +194,25 @@ router.post("/favours/edit", (req: Request, res: Response) => {
 	}
 	if (set_strings.length > 0) {
 		sqlQuery += set_strings.join(",");
-	} else{
+	} else {
 		res.send("You didn't send me anything >:(");
 		return;
 	}
-	console.log(sqlQuery,placeholder_vars)
-	
+	console.log(sqlQuery, placeholder_vars);
 
 	db.query(
-		sqlQuery+" WHERE _id=? AND user_id=?", //Delete other requests
-		placeholder_vars.concat([req.body["favour_id"],req.session!.user_id])
-		,
+		sqlQuery + " WHERE _id=? AND user_id=?", //Delete other requests
+		placeholder_vars.concat([req.body["favour_id"], req.session!.user_id]),
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else if (result["affectedRows"] == 0) {
 				res.send("invalid user ids or favour id");
-				console.log(req.session!.user_id,"tried to edit",req.body["favour_id"], "despite not owning it, the silly bear");
+				console.log(
+					req.session!.user_id,
+					"tried to edit",
+					req.body["favour_id"],
+					"despite not owning it, the silly bear"
+				);
 			} else {
 				res.send("OK");
 			}
@@ -270,8 +273,6 @@ router.post("/favours/request/list", (req: Request, res: Response) => {
 	);
 });
 
-
-
 // Send request to get a specific favour
 // Expects favour_id (id of favour to send a request for)
 router.post("/favours/request/send", (req: Request, res: Response) => {
@@ -326,23 +327,21 @@ router.post("/favours/request/retract", (req: Request, res: Response) => {
 	}
 	db.query(
 		"DELETE FROM Favour_Requests fr WHERE fr.favour_id=? AND fr.user_id=?", //Delete other requests
-		[
-			req.body["favour_id"],
-			req.session!.user_id
-		],
+		[req.body["favour_id"], req.session!.user_id],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else if (result["affectedRows"] == 0) {
 				res.send("invalid user ids or favour id");
-				console.log(req.session!.user_id,"Never requested in the first place");
+				console.log(
+					req.session!.user_id,
+					"Never requested in the first place"
+				);
 			} else {
 				res.send("OK");
 			}
 		}
 	);
 });
-
-
 
 // User is able to accept Favour request
 // Expects requestor (id of user whose request is being accepted) and favour_id (id of favour to accept request for)
@@ -699,15 +698,16 @@ router.post("/account/password", (req: Request, res: Response) => {
 
 // POST profile image link to database
 router.post("/profileImage", (req: Request, res: Response) => {
-	const awsLink: string ='https://favourtown.s3-ap-southeast-2.amazonaws.com/';
+	const awsLink: string =
+		"https://favourtown.s3-ap-southeast-2.amazonaws.com/";
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
-	
+
 	db.query(
-		'UPDATE User SET image_link=? where _id=?',
+		"UPDATE User SET image_link=? where _id=?",
 		[awsLink + req.body["image_link"], req.body["user_id"]],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
@@ -715,7 +715,6 @@ router.post("/profileImage", (req: Request, res: Response) => {
 		}
 	);
 });
-
 
 // router.get("/favours/:id", (req: Request, res: Response) => {
 // 	var query: string =
@@ -734,15 +733,15 @@ router.get("/profileImage", (req: Request, res: Response) => {
 		return;
 	}
 	db.query(
-		'SELECT image_link FROM User WHERE _id=?'
-		[req.body["user_id"], req.session!.user_id],
+		"SELECT image_link FROM User WHERE _id=?"[
+			(req.body["user_id"], req.session!.user_id)
+		],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else console.log(result), res.send(result);
 		}
 	);
 });
-
 
 // // GET profile image link to database
 // router.post("/logout", (req: Request, res: Response) => {
