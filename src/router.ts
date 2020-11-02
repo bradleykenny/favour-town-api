@@ -445,7 +445,7 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 				);
 			} else {
 				db.query(
-					"UPDATE User SET favour_counter=favour_counter-(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=?", //Delete other requests
+					"UPDATE User SET favour_counter=favour_counter-(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=?", 
 					[req.body["favour_id"], req.session!.user_id],
 					function (err, result) {
 						console.log(result);
@@ -463,10 +463,10 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 					}
 				);
 				db.query(
-					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE user_id=?)", //Delete other requests
+					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE _id=?)", //Delete other requests
 					[
 						req.body["favour_id"],
-						req.session!.user_id,
+						req.body["favour_id"],
 					],
 					function (err, result) {
 						console.log(result);
