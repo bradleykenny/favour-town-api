@@ -10,7 +10,7 @@ module.exports = function (client: socketIO.Socket) {
 	if (client.handshake.session!.user_id) {
 		connectedClients[client.handshake.session!.user_id] = client;
 		db.query(
-			`SELECT username,_id FROM User WHERE _id=?
+			`SELECT username,_id,image_link FROM User WHERE _id=?
 			`, //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
 			[
 				client.handshake.session!.user_id,
@@ -21,9 +21,9 @@ module.exports = function (client: socketIO.Socket) {
 			}
 		);
 		db.query(
-			`SELECT friends.* FROM (SELECT u.username,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.receiver_id=? ORDER BY m.date) AS msg ON u._id=msg.sender_id 
+			`SELECT friends.* FROM (SELECT u.username,u.image_link,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.receiver_id=? ORDER BY m.date) AS msg ON u._id=msg.sender_id 
 			UNION 
-			SELECT u.username,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.sender_id=? ORDER BY m.date) AS msg ON u._id=msg.receiver_id ORDER BY date DESC) AS friends GROUP BY username
+			SELECT u.username,u.image_link,msg.* FROM User u JOIN (SELECT m.* FROM Messages m WHERE m.sender_id=? ORDER BY m.date) AS msg ON u._id=msg.receiver_id ORDER BY date DESC) AS friends GROUP BY username
 			`, //REMEMBER TO PUT THIS IN THE MYSQL DATABASE
 			[
 				client.handshake.session!.user_id,
@@ -31,6 +31,7 @@ module.exports = function (client: socketIO.Socket) {
 			],
 			function (err, result) {
 				if (err) console.log(err);
+				console.log(result)
 				client.emit("friendslist",result);
 			}
 		);

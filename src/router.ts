@@ -463,11 +463,10 @@ router.post("/favours/complete", (req: Request, res: Response) => {
 					}
 				);
 				db.query(
-					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE _id=?)", //Delete other requests
+					"UPDATE User SET favour_counter=favour_counter+(SELECT favour_coins FROM Favour WHERE _id=?) WHERE _id=(SELECT assigned_user_id FROM Favour WHERE user_id=?)", //Delete other requests
 					[
 						req.body["favour_id"],
 						req.session!.user_id,
-						req.body["favour_id"],
 					],
 					function (err, result) {
 						console.log(result);
@@ -629,22 +628,6 @@ router.post("/hassession", (req: Request, res: Response) => {
 	}
 });
 
-router.post("/account/location", (req: Request, res: Response) => {
-	if (!req.session!.user_id) {
-		res.send("Not logged in!");
-		return;
-	}
-	const sqlQuery: string = "UPDATE User SET location=? WHERE _id=?";
-	db.query(sqlQuery, [req.body["location"], req.session!.user_id], function (
-		err,
-		result
-	) {
-		if (err) console.log(err);
-		console.log(result);
-		res.send("OK"); // Send back OK if successfully registered
-	});
-});
-
 router.post("/account/password", (req: Request, res: Response) => {
 	if (!req.session!.user_id) {
 		res.send("Not logged in!");
@@ -697,7 +680,7 @@ router.post("/account/password", (req: Request, res: Response) => {
 });
 
 // POST profile image link to database
-router.post("/profileImage", (req: Request, res: Response) => {
+router.post("/profileImage", async (req: Request, res: Response) => {
 	const awsLink: string =
 		"https://favourtown.s3-ap-southeast-2.amazonaws.com/";
 	if (!req.session!.user_id) {
@@ -705,10 +688,31 @@ router.post("/profileImage", (req: Request, res: Response) => {
 		console.log("Invalid session with session data:", req.session);
 		return;
 	}
+	var sqlQuery="UPDATE User SET "
+
+	var set_strings:string[]=["image_link=?"] //Well the image link is a required field might as well chuck it in there
+	var placeholder_vars:any[]=[awsLink+req.body["image_link"]]
+	if (req.body["location"]) {
+		set_strings.push("location=?");
+		placeholder_vars.push(req.body["location"]);
+	}
+	if(req.body["password"]){
+		let hash = await bcrypt.hash(req.body["password"], saltRounds);
+		set_strings.push("password=?");
+		placeholder_vars.push(hash);
+
+	}
+
+	if (set_strings.length > 0) {
+		sqlQuery += set_strings.join(",");
+	} else {
+		res.send("You didn't send me anything >:(");
+		return;
+	}
 
 	db.query(
-		"UPDATE User SET image_link=? where _id=?",
-		[awsLink + req.body["image_link"], req.body["user_id"]],
+		sqlQuery+" where _id=?",
+		[...placeholder_vars,req.session!.user_id],
 		function (err, result) {
 			if (err) console.log(err), res.send("error");
 			else console.log(result), res.send("OK");
